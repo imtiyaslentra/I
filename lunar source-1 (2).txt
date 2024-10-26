@@ -11,10 +11,6 @@ getgenv().hit_effect_Enabled = false
 getgenv().night_mode_Enabled = false
 getgenv().self_effect_Enabled = false
 local Services = { game:GetService('AdService'), game:GetService('SocialService') } -- UI Library
-local OrionLib = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Orion/main/source'))()
-local Window = OrionLib:MakeWindow({ Name = "Lunar Premium Blade ball", HidePremium = true, SaveConfig = true, ConfigFolder = "cElerytEst" })
-local Tab = Window:MakeTab({ Name = "Main", Icon = "rbxassetid://4483345998", PremiumOnly = false })
-local Tab3 = Window:MakeTab({ Name = "Visuals", Icon = "rbxassetid://4483345998", PremiumOnly = false })
 
 -- Initialization
 local function initialize(dataFolderName)
@@ -128,39 +124,94 @@ workspace.Alive.ChildRemoved:Connect(function(child)
     end
 end)
 
--- UI Toggles
-Tab:AddToggle({
-    Name = "Auto Parry/Spam",
-    Default = false,
-    Callback = function(Value)
-        resolveParryRemote()
-        getgenv().aura_Enabled = Value
-    end
+-- Load Fluent Library and Addons
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+
+-- Set up the SaveManager with Fluent
+SaveManager:SetLibrary(Fluent)
+SaveManager:SetFolder("FluentScriptHub")  -- You can change the folder name as needed
+SaveManager:IgnoreThemeSettings()  -- Ignore theme settings for autosave
+SaveManager:SetIgnoreIndexes({})  -- Ignore specific indexes if needed
+SaveManager:LoadAutoloadConfig()  -- Load configuration on startup
+
+-- Create Main Window
+local Window = Fluent:CreateWindow({
+    Title = "Fluent UI",
+    SubTitle = "by dawid",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Acrylic = true,
+    Theme = "Dark"
 })
 
-Tab3:AddToggle({
-    Name = "Night Mode",
-    Default = false,
-    Callback = function(toggled)
-        getgenv().night_mode_Enabled = toggled
-    end
+-- Create Tabs
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "" }),
+    Visuals = Window:AddTab({ Title = "Visuals", Icon = "eye" }),
+}
+
+-- Toggle: Auto Parry/Spam
+local AutoParrySpamToggle = Tabs.Main:AddToggle("AutoParrySpam", {
+    Title = "Auto Parry/Spam",
+    Default = false
 })
+
+AutoParrySpamToggle:OnChanged(function(enabled)
+    resolveParryRemote()  -- Assuming this function is defined elsewhere in your script
+    getgenv().aura_Enabled = enabled
+    Fluent:Notify({
+        Title = "Auto Parry/Spam",
+        Content = enabled and "Auto Parry/Spam Enabled" or "Auto Parry/Spam Disabled",
+        Duration = 5
+    })
+    SaveManager:Set("AutoParrySpam", enabled)  -- Autosave toggle state
+end)
+
+-- Toggle: Night Mode
+local NightModeToggle = Tabs.Main:AddToggle("NightMode", {
+    Title = "Night Mode",
+    Default = false
+})
+
+NightModeToggle:OnChanged(function(enabled)
+    getgenv().night_mode_Enabled = enabled
+    Fluent:Notify({
+        Title = "Night Mode",
+        Content = enabled and "Night Mode Enabled" or "Night Mode Disabled",
+        Duration = 5
+    })
+    SaveManager:Set("NightMode", enabled)  -- Autosave toggle state
+end)
 
 -- Manual Spam Button in Visuals Tab
-Tab3:AddButton({
-    Name = "Manual Spam",
+Tabs.Visuals:AddButton({
+    Title = "Manual Spam",
     Callback = function()
         loadstring(game:HttpGet("https://pastebin.com/raw/4Wx5dumR"))()
+        Fluent:Notify({
+            Title = "Manual Spam",
+            Content = "Manual spam executed.",
+            Duration = 5
+        })
     end
 })
 
--- Night Mode
-task.defer(function()
-    while task.wait(1) do
-        local clockTime = getgenv().night_mode_Enabled and 3.9 or 13.5
-        game:GetService("TweenService"):Create(game:GetService("Lighting"), TweenInfo.new(3), {ClockTime = clockTime}):Play()
-    end
-end)
+-- Add Notification for Script Load
+Fluent:Notify({
+    Title = "Fluent",
+    Content = "The script has been loaded successfully.",
+    Duration = 5
+})
+
+-- Select the first tab by default
+Window:SelectTab(1)
+
+-- Auto-load saved settings into toggles
+AutoParrySpamToggle:SetValue(SaveManager:Get("AutoParrySpam") or false)
+NightModeToggle:SetValue(SaveManager:Get("NightMode") or false)
+
+-- Optional: Additional configurations or features can be added here
 
 -- Aura Mechanics
 local lastParryTime = tick()

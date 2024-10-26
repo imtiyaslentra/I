@@ -32,9 +32,6 @@ local function optimizePerformance()
     game:GetService("Lighting").GlobalShadows = false -- Disable shadows
     game:GetService("Lighting").Brightness = 2 -- Adjust lighting for smoothness
     game:GetService("UserInputService").MouseDeltaSensitivity = 0.5 -- Reduce mouse lag
-
-    -- Reduce Ping by limiting network updates
-    RunService:Set3DRenderingEnabled(false) -- Disable rendering of 3D parts outside view
     setfpscap(120) -- Increase FPS cap to 120 for smoother performance
     
     -- Optimize memory usage
@@ -55,16 +52,7 @@ local function optimizePerformance()
             end
         end
     end
-
     optimizeMemoryUsage()
-
-    -- Notify the user of performance boost
-    OrionLib:MakeNotification({
-        Name = "Performance Boosted",
-        Content = "FPS boosted, Ping lowered, and smooth gameplay enabled.",
-        Image = "rbxassetid://4483345998",
-        Time = 5
-    })
 end
 
 -- Closest Entity
@@ -84,14 +72,18 @@ local function getClosestEntity(Object)
 end
 
 -- Resolve Parry Remote
-local function resolveParryRemote()
-    for _, service in ipairs(Services) do
-        local temp_remote = service:FindFirstChildOfClass('RemoteEvent')
-        if temp_remote and temp_remote.Name:find('\n') then
-            parry_remote = temp_remote
-            break
-        end
+function resolve_parry_Remote()
+    local temp_remote = game:GetService("VirtualUser"):WaitForChild("\n\n\n\n\n")
+    if not temp_remote then
+        print("No RemoteEvent found.") -- Debug: Tidak ada RemoteEvent
+        return
     end
+    if not temp_remote:IsA('RemoteEvent') then
+        print("Found object is not a RemoteEvent.") -- Debug: Bukan RemoteEvent
+        return
+    end
+    originalParryRemote = temp_remote
+    print("RemoteEvent resolved successfully.") -- Debug: RemoteEvent berhasil
 end
 
 -- Aura Table
